@@ -72,11 +72,11 @@ module around_the_carriage() {
     
     // The wheels
     translate([-extrusion_width/2, -wheels_spacing/2, 0])
-        623_wheel();
+        #%623_wheel();
     translate([-extrusion_width/2, +wheels_spacing/2, -wheels_height_pos/2])
-        623_wheel();
+        #%623_wheel();
     translate([-extrusion_width/2, +wheels_spacing/2, +wheels_height_pos/2])
-        623_wheel();
+        #%623_wheel();
 }
 
 around_the_carriage();
