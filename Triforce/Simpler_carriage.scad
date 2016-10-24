@@ -27,7 +27,7 @@ wheels_height_pos = 37;
 
 
 belt_position = 21;
-belt_spacing  = 13;
+belt_spacing  = 9.5;
 extrusion_width = 15;
 
 ball_joints_spacing = 40;
@@ -65,10 +65,12 @@ module around_the_carriage() {
         %cube([extrusion_width, extrusion_width, the_height], center=true);
     
     // The belt
-    translate([belt_position+6/2, -belt_spacing/2, 0])
-        %cube([6, 2, the_height], center=true);
-    translate([belt_position+6/2,  belt_spacing/2, 0]) 
-        %cube([6, 2, the_height], center=true);
+    for(m=[0,1]) {
+        mirror([0,m,0])
+        translate([belt_position, belt_spacing/2, -the_height/2])
+            //%cube([6, 2, the_height]);
+            %belt_gt2(50,6);
+    }
     
     // The wheels
     translate([-extrusion_width/2, -wheels_spacing/2, 0])
@@ -81,8 +83,22 @@ module around_the_carriage() {
 
 around_the_carriage();
 
-
-
+module belt_gt2(number, height) {
+    mirror([0,0,1]) rotate([0, 90, 0]) rotate([0, 0, -90]) {
+        translate([-1.38,-1,0]) cube([1.38-0.75, number*2, height]);
+        for(i = [0:number-1]) translate([0,2*i,0]){
+            for(m=[0,1]) mirror([0,m,0]) {
+                translate([-0.75,0.56,0])difference() {
+                    cube([0.19, 0.19, height]);
+                    translate([0.19,0.19,0])cylinder(r=0.19, h=height);
+                }
+                
+            }
+            translate([-0.75,-0.56,0])cube([0.19, 2*0.56, height]);
+            translate([0.19-0.75, 0, 0])cylinder(r=0.56, h=height);
+        }
+    }
+}
 
 module carriage() {
     difference() {
@@ -92,15 +108,15 @@ module carriage() {
             pos = ball_joints_spacing/2-horn_length;
             translate([0, -pos, ball_joints_z_position-horn_height/2])
                 cube([horn_thickness/2, 2*pos, horn_height]);
-            translate([0, +pos+1, 0])
-                cube([surface_height, 11, 27.5]);
+            translate([0, -pos, -15])
+                cube([surface_height, 28, 42]);
             
             difference() {
                 union() {
                     translate([0, -ball_joints_spacing/2, -15])
                         cube([surface_height, ball_joints_spacing, 15]);
-                    translate([0, -wheels_spacing/2, 0])
-                        rotate([0,90,0]) cylinder(h=surface_height, d=11.5);
+                    translate([0, -wheels_spacing/2-.25, 0])
+                        rotate([0,90,0]) cylinder(h=surface_height, d=11);
 
                     translate([0, 0, -15]) intersection() {
                             translate([0, -ball_joints_spacing/2, -ball_joints_spacing/2])
@@ -128,7 +144,7 @@ module carriage() {
                   for (x = [0, 1]) {
                       mirror([0, x, 0]) translate([horn_thickness/2, 40/2, 0])
                         rotate([90, 0, 0])
-                            cylinder(r2=14, r1=2.5, h=horn_length);
+                            cylinder(r2=14, r1=3, h=horn_length);
                   }
                     
                 }
@@ -154,7 +170,8 @@ module carriage() {
 
 
 carriage();
-
+//translate([10,4.75+0.55,0])
+//belt_gt2(10, 6);
 
 
 //translate([0,0,6.5])rotate([-90,0,0])rotate([0,90,0]) import("/home/felix/tmp/old_carriage.stl", convexity=3);
