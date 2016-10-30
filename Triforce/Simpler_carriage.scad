@@ -57,6 +57,27 @@ module wheel_hole(the_height) {
     }
 }
 
+belt_gt2_height = 10;
+module belt_gt2_part() {
+    for(m=[0,1]) mirror([0,m,0]) {
+        translate([-0.75,0.56,0])
+            difference() {
+                cube([0.19, 0.19, belt_gt2_height]);
+                translate([0.19,0.19,0])cylinder(r=0.19, h=belt_gt2_height);
+            }
+    }
+    translate([-0.75,-0.56,0])cube([0.19, 2*0.56, belt_gt2_height]);
+    translate([0.19-0.75, 0, 0])cylinder(r=0.56, h=belt_gt2_height);
+}
+
+module belt_gt2(number) {
+    mirror([0,0,1]) rotate([0, 90, 0]) rotate([0, 0, -90]) {
+        translate([-1.38,-1,0]) cube([1.38-0.75, number*2, belt_gt2_height]);
+        for(i = [0:number-1]) translate([0,2*i,0]){
+            belt_gt2_part();
+        }
+    }
+}
 
 module around_the_carriage() {
     the_height = 100;
@@ -67,111 +88,94 @@ module around_the_carriage() {
     // The belt
     for(m=[0,1]) {
         mirror([0,m,0])
-        translate([belt_position, belt_spacing/2, -the_height/2])
+        translate([belt_position, belt_spacing/2, 0]) {
             //%cube([6, 2, the_height]);
-            %belt_gt2(50,6);
+            #belt_gt2(10);
+        }
     }
     
     // The wheels
-    translate([-extrusion_width/2, -wheels_spacing/2, 0])
-        #%623_wheel();
-    translate([-extrusion_width/2, +wheels_spacing/2, -wheels_height_pos/2])
-        #%623_wheel();
-    translate([-extrusion_width/2, +wheels_spacing/2, +wheels_height_pos/2])
-        #%623_wheel();
-}
-
-around_the_carriage();
-
-module belt_gt2(number, height) {
-    mirror([0,0,1]) rotate([0, 90, 0]) rotate([0, 0, -90]) {
-        translate([-1.38,-1,0]) cube([1.38-0.75, number*2, height]);
-        for(i = [0:number-1]) translate([0,2*i,0]){
-            for(m=[0,1]) mirror([0,m,0]) {
-                translate([-0.75,0.56,0])difference() {
-                    cube([0.19, 0.19, height]);
-                    translate([0.19,0.19,0])cylinder(r=0.19, h=height);
-                }
-                
-            }
-            translate([-0.75,-0.56,0])cube([0.19, 2*0.56, height]);
-            translate([0.19-0.75, 0, 0])cylinder(r=0.56, h=height);
-        }
+    translate([0, -wheels_spacing/2, 0]) {
+        translate([-extrusion_width/2, 0]) #%623_wheel();
+        translate([3,0,0]) wheel_hole(20);
     }
+    translate([0, +wheels_spacing/2, -wheels_height_pos/2]) {
+        translate([-extrusion_width/2, 0]) #%623_wheel();
+        translate([3,0,0]) wheel_hole(20);
+    }
+    translate([0, +wheels_spacing/2, +wheels_height_pos/2]) {
+        translate([-extrusion_width/2, 0]) #%623_wheel();
+        translate([3,0,0]) wheel_hole(20);
+    }
+    
+    // Hole for the ball joints
+    translate([horn_thickness/2, 0, ball_joints_z_position])
+        rotate([90,0,0]) cylinder(r=m3_wide_radius, h=60, center=true);
+
 }
+
 
 module carriage() {
+    // "Surface"
+    pos = ball_joints_spacing/2-horn_length;
+    translate([0, -pos, ball_joints_z_position-horn_height/2])
+        cube([horn_thickness/2, 2*pos, horn_height]);
+    translate([0, -pos, -15])
+        cube([surface_height, 28, 42]);
+    
     difference() {
         union() {
+            translate([0, -ball_joints_spacing/2, -15])
+                cube([surface_height, ball_joints_spacing, 15]);
+            translate([0, -wheels_spacing/2-.25, 0])
+                rotate([0,90,0]) cylinder(h=surface_height, d=11);
 
-            // "Surface"
-            pos = ball_joints_spacing/2-horn_length;
-            translate([0, -pos, ball_joints_z_position-horn_height/2])
-                cube([horn_thickness/2, 2*pos, horn_height]);
-            translate([0, -pos, -15])
-                cube([surface_height, 28, 42]);
-            
-            difference() {
-                union() {
-                    translate([0, -ball_joints_spacing/2, -15])
-                        cube([surface_height, ball_joints_spacing, 15]);
-                    translate([0, -wheels_spacing/2-.25, 0])
-                        rotate([0,90,0]) cylinder(h=surface_height, d=11);
-
-                    translate([0, 0, -15]) intersection() {
-                            translate([0, -ball_joints_spacing/2, -ball_joints_spacing/2])
-                                cube([surface_height, ball_joints_spacing, ball_joints_spacing/2]);
-                            rotate([0,90,0]) cylinder(d=ball_joints_spacing, h=surface_height);
-                        }
+            translate([0, 0, -15]) intersection() {
+                    translate([0, -ball_joints_spacing/2, -ball_joints_spacing/2])
+                        cube([surface_height, ball_joints_spacing, ball_joints_spacing/2]);
+                    rotate([0,90,0]) cylinder(d=ball_joints_spacing, h=surface_height);
                 }
+        }
 
-                cutout_width = 18;
-                union() {
-                    translate([0, -cutout_width/2, -15])
-                        cube([surface_height, cutout_width, 20]);
-                    translate([0,0,-15])
-                        rotate([0,90,0])scale([cutout_width*4/3, cutout_width, 1])
-                            cylinder(h=surface_height, d=1);
-               }
-            }
-
-
-            // Ball joint mount horns.
-            translate([0,0,ball_joints_z_position])
-                intersection() {
-                    translate([0, -ball_joints_spacing/2, -horn_height/2])
-                        cube([horn_thickness, ball_joints_spacing, horn_height]);
-                  for (x = [0, 1]) {
-                      mirror([0, x, 0]) translate([horn_thickness/2, 40/2, 0])
-                        rotate([90, 0, 0])
-                            cylinder(r2=14, r1=3, h=horn_length);
-                  }
-                    
-                }
+        cutout_width = 18;
+        union() {
+            translate([0, -cutout_width/2, -15])
+                cube([surface_height, cutout_width, 20]);
+            translate([0,0,-15])
+                rotate([0,90,0])scale([cutout_width*4/3, cutout_width, 1])
+                    cylinder(h=surface_height, d=1);
+       }
+    }
+    
+    // Belt clamps
+    belt_clamp_height=15;
+    translate([0,0,0])
+        cube([30,5, belt_clamp_height]);
+    translate([0,4.75+1.45,0])
+        cube([30,4.75, belt_clamp_height]);
+    translate([0,0,0])
+        cube([30,4.75, belt_clamp_height]);
+    
 
 
-        } union() {
-            // Holes for wheel screws
-            translate([3, -wheels_spacing/2, 0])
-                wheel_hole(20);
-            translate([3, +wheels_spacing/2, -wheels_height_pos/2])
-                wheel_hole(20);
-            translate([3, +wheels_spacing/2, +wheels_height_pos/2])
-                wheel_hole(45);
-            
-            
-            // Hole for the ball joints
-            translate([horn_thickness/2, 0, ball_joints_z_position])
-                rotate([90,0,0]) cylinder(r=m3_wide_radius, h=60, center=true);
+    // Ball joint mount horns.
+    translate([0,0,ball_joints_z_position])
+        intersection() {
+            translate([0, -ball_joints_spacing/2, -horn_height/2])
+                cube([horn_thickness, ball_joints_spacing, horn_height]);
+          for (x = [0, 1]) {
+              mirror([0, x, 0]) translate([horn_thickness/2, 40/2, 0])
+                rotate([90, 0, 0])
+                    cylinder(r2=14, r1=3, h=horn_length);
+          }
             
         }
-    }
 }
 
-
-carriage();
-//translate([10,4.75+0.55,0])
-//belt_gt2(10, 6);
-
+difference() {
+    carriage();
+    around_the_carriage();
+}
+//around_the_carriage();
 
 //translate([0,0,6.5])rotate([-90,0,0])rotate([0,90,0]) import("/home/felix/tmp/old_carriage.stl", convexity=3);
