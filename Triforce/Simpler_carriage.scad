@@ -26,7 +26,8 @@ wheels_spacing = 30 - 1.5;
 wheels_height_pos = 37;
 
 
-belt_position = 21;
+belt_offset = 10;
+belt_height = 8;
 belt_spacing  = 9.5;
 extrusion_width = 15;
 
@@ -85,14 +86,11 @@ module around_the_carriage() {
     translate([-extrusion_width/2, 0, 0])
         %cube([extrusion_width, extrusion_width, the_height], center=true);
     
+
     // The belt
-    for(m=[0,1]) {
-        mirror([0,m,0])
-        translate([belt_position, belt_spacing/2, 0]) {
-            //%cube([6, 2, the_height]);
-            #belt_gt2(10);
-        }
-    }
+    mirror([0,1,0]) translate([belt_offset, belt_spacing/2, belt_height-8]) #belt_gt2(9);
+    mirror([0,0,0]) translate([belt_offset, belt_spacing/2, belt_height+4]) #belt_gt2(3);
+    mirror([0,0,0]) translate([belt_offset, belt_spacing/2, belt_height-8]) #belt_gt2(3);
     
     // The wheels
     translate([0, -wheels_spacing/2, 0]) {
@@ -148,13 +146,24 @@ module carriage() {
     }
     
     // Belt clamps
-    belt_clamp_height=15;
-    translate([0,0,0])
-        cube([30,5, belt_clamp_height]);
-    translate([0,4.75+1.45,0])
-        cube([30,4.75, belt_clamp_height]);
-    translate([0,0,0])
-        cube([30,4.75, belt_clamp_height]);
+    belt_clamp_height=belt_offset + belt_gt2_height;
+    translate([0, 0, belt_height-15/2])
+        cube([belt_clamp_height,5.5, 15]);
+
+    translate([0, 4.75+1.8+5/2, belt_height]) {
+         for(m=[0,1]) mirror([0,0,m]) translate([0, 0, 5/2+1.8]){
+            rotate([0,90,0]) cylinder(d=5,h=belt_clamp_height);
+            translate([0,-5/2,0]) cube([belt_clamp_height,5/2,5/2]);
+            translate([0,0,-5/2]) cube([belt_clamp_height,5/2,5/2]);
+        }
+    }
+    difference([]) {
+        translate([0,5,belt_height-6/2]) cube([belt_clamp_height,5/2,6]);
+        diam = 5+2.6;
+        translate([-0.05,4.75+1.45+5/2, belt_height+5/2+1.4]) rotate([0,90,0]) cylinder(d=diam,h=belt_clamp_height+.1);
+        translate([-0.05,4.75+1.45+5/2, belt_height-5/2-1.4]) rotate([0,90,0]) cylinder(d=diam,h=belt_clamp_height+.1);
+        
+    }
     
 
 
@@ -172,6 +181,7 @@ module carriage() {
         }
 }
 
+//rotate([0,-90,0])
 difference() {
     carriage();
     around_the_carriage();
