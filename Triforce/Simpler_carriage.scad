@@ -22,12 +22,12 @@ m3_wide_radius = m3_major/2 + extra_radius + 0.2;
 // Ajustable variables
 
 // 30 reel - 1.5 pour pression
-wheels_spacing = 30 - 1.5;
+wheels_spacing = 30 -0.2;
 wheels_height_pos = 37;
 
 
 belt_offset = 10;
-belt_height = 8;
+belt_height = 13;
 belt_spacing  = 9.5;
 extrusion_width = 15;
 
@@ -121,30 +121,25 @@ module carriage() {
     translate([0, -pos, -15])
         cube([surface_height, 28, 42]);
     
-    difference() {
-        union() {
-            translate([0, -ball_joints_spacing/2, -15])
-                cube([surface_height, ball_joints_spacing, 15]);
-            translate([0, -wheels_spacing/2-.25, 0])
-                rotate([0,90,0]) cylinder(h=surface_height, d=11);
-
-            translate([0, 0, -15]) intersection() {
-                    translate([0, -ball_joints_spacing/2, -ball_joints_spacing/2])
-                        cube([surface_height, ball_joints_spacing, ball_joints_spacing/2]);
-                    rotate([0,90,0]) cylinder(d=ball_joints_spacing, h=surface_height);
-                }
-        }
-
-        cutout_width = 18;
-        union() {
-            translate([0, -cutout_width/2, -15])
-                cube([surface_height, cutout_width, 20]);
-            translate([0,0,-15])
-                rotate([0,90,0])scale([cutout_width*4/3, cutout_width, 1])
-                    cylinder(h=surface_height, d=1);
-       }
-    }
     
+    l1 = -wheels_spacing;
+    l2 = (wheels_height_pos/4);
+    angle = atan(l1/l2);
+    longueur = sqrt(l1*l1+ l2*l2);
+
+    translate([0, +wheels_spacing/2, -wheels_height_pos/2])
+        rotate([-angle, 0, 0]) 
+            translate([0, -11/2, 0]) cube([surface_height, 11, longueur]);
+    translate([0, +wheels_spacing/2, -wheels_height_pos/2]) translate([0, l1, l2])
+        rotate([0,90,0]) cylinder(h=surface_height, d=11);
+    translate([0, +wheels_spacing/2, -wheels_height_pos/2]) translate([0, l1, l2])
+        translate([0, -11/2, 0])cube([surface_height, 11, (wheels_height_pos/2)-l2]);
+    translate([0, +wheels_spacing/2, -wheels_height_pos/2])
+        rotate([0,90,0]) cylinder(h=surface_height, d=11);
+    translate([0, -wheels_spacing/2, 0])
+        rotate([0,90,0]) cylinder(h=surface_height, d=11);
+
+
     // Belt clamps
     belt_clamp_height=belt_offset + belt_gt2_height;
     translate([0, 0, belt_height-15/2])
@@ -157,7 +152,7 @@ module carriage() {
             translate([0,0,-5/2]) cube([belt_clamp_height,5/2,5/2]);
         }
     }
-    difference([]) {
+    difference() {
         translate([0,5,belt_height-6/2]) cube([belt_clamp_height,5/2,6]);
         diam = 5+2.6;
         translate([-0.05,4.75+1.45+5/2, belt_height+5/2+1.4]) rotate([0,90,0]) cylinder(d=diam,h=belt_clamp_height+.1);
@@ -184,7 +179,7 @@ module carriage() {
 //rotate([0,-90,0])
 difference() {
     carriage();
-    around_the_carriage();
+    #around_the_carriage();
 }
 //around_the_carriage();
 
