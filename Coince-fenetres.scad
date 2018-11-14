@@ -27,7 +27,7 @@ module trou2() {
 
 module attaches() {
 difference() {
-     minkowski(){
+    minkowski(){
         trou1();
         circle();
     }
